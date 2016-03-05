@@ -1,0 +1,47 @@
+.focus {
+    border: 2px solid #AA88FF;
+    background-color: #FFEEAA;
+}
+
+.ui-datepicker,.ui-datepicker-calendar {
+width: 17em; /*what ever width you want*/
+}
+
+.divBorder{
+	width:400px;
+	border:2px solid #69D2E8;
+	padding:10px 10px;
+}
+
+.hline{
+	border:1px solid #69D2E8;
+}
+
+table.dataTable thead th, table.dataTable thead td {
+  padding: 2px 2px;
+  border-bottom: 1px solid #CCC;
+}
+
+table.dataTable tbody td {
+  padding: 2px 2px;
+
+}
+
+table.dataTable{
+	background-color:#CCC;
+	border:1px solid #CCC;
+}
+
+table#todayEntryTable{
+	background-color:#C4E9EE;
+	border:1px solid #CCC;
+}
+
+table#prevEntryTable thead th, table#prevEntryTable thead td {
+  color:#6E6E6E;
+}
+
+table#prevEntryTable tbody td {
+ 
+
+}
