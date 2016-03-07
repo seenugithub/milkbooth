@@ -32,13 +32,21 @@ table.dataTable{
 	border:1px solid #CCC;
 }
 
-table#todayEntryTable{
-	background-color:#C4E9EE;
+table#todayEntryTable{ 
+	background-color:#dfeffc;
 	border:1px solid #CCC;
+}
+
+table#todayEntryTable thead th{
+	color:#2e6e9e;
 }
 
 table#prevEntryTable thead th, table#prevEntryTable thead td {
   color:#6E6E6E;
+}
+
+table.dataTable tbody td.custno{
+	color:#2B8DA1;	
 }
 
 table#prevEntryTable tbody td {
