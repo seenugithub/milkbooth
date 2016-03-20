@@ -13,6 +13,11 @@ width: 17em; /*what ever width you want*/
 	padding:10px 10px;
 }
 
+.dborder{
+	border:2px solid #69D2E8;
+	padding:10px 10px;
+}
+
 .hline{
 	border:1px solid #69D2E8;
 }
@@ -42,7 +47,11 @@ table#todayEntryTable thead th{
 }
 
 table#prevEntryTable thead th, table#prevEntryTable thead td {
-  color:#6E6E6E;
+  color:#2e6e9e;
+}
+
+.noentry {
+  background-color:#FFC9CB;
 }
 
 table.dataTable tbody td.custno{

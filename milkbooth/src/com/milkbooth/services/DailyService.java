@@ -52,25 +52,33 @@ public class DailyService {
 		String qty = request.getParameter("qty");
 		String fat = request.getParameter("fat");
 		String custno = request.getParameter("custno");
-		String response="success";
+		String response="";
 		
 		try {
-			String sql="SELECT COUNT(1) FROM GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS WHERE TRANS_DATE=TO_DATE(?,'DD/MM/YYYY') ";
+			String sql="SELECT COUNT(1) FROM GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS WHERE CUSTOMER_NO=? AND TRANS_DATE=TO_DATE(?,'DD/MM/YYYY') ";
 			JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-			int isExist=jdbcTemplate.queryForObject(sql,new Object[]{date},Integer.class);
-			
+			int isExist=jdbcTemplate.queryForObject(sql,new Object[]{custno,date},Integer.class);
+			String qtyColumn=dtsession+"_QTY";
+			String fatColumn=dtsession+"_FAT";
+			String amountColumn=dtsession+"_AMOUNT";
+			String amountColumnValue="NVL("+qtyColumn+",0)*NVL("+fatColumn+",0)";
 			if(dtsession!=null && !dtsession.isEmpty()){
 				if(isExist==0){
-					 sql = "INSERT INTO GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS (CUSTOMER_NO,"+dtsession+"_QTY,"+dtsession+"_FAT,TRANS_DATE,LAST_UPDATE) VALUES(?,?,?,TO_DATE(?,'DD/MM/YYYY'),SYSDATE)";
+					
+					 sql = "INSERT INTO GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS (CUSTOMER_NO,"+qtyColumn+","+fatColumn+",TRANS_DATE,LAST_UPDATE) VALUES(?,?,?,TO_DATE(?,'DD/MM/YYYY'),SYSDATE)";
 					 System.out.println(sql);
 					 jdbcTemplate.update(sql,new Object[]{custno,qty,fat,date});
+					 sql = "UPDATE GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS  SET "+amountColumn+"="+amountColumnValue+" WHERE CUSTOMER_NO=? AND TRANS_DATE=TO_DATE(?,'DD/MM/YYYY')";
+					 System.out.println(sql);
+					 jdbcTemplate.update(sql,new Object[]{custno,date});
+					 
 				}
 				else{
-					sql = "UPDATE GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS  SET "+dtsession+"_QTY=?,"+dtsession+"_FAT=?,LAST_UPDATE=SYSDATE WHERE CUSTOMER_NO=? AND TRANS_DATE=TO_DATE(?,'DD/MM/YYYY')";
+					sql = "UPDATE GOVARDANA_MILKCENTER.CUSTOMER_TRANSACTIONS  SET "+qtyColumn+"=?,"+fatColumn+"=?,"+amountColumn+"="+amountColumnValue+",LAST_UPDATE=SYSDATE WHERE CUSTOMER_NO=? AND TRANS_DATE=TO_DATE(?,'DD/MM/YYYY')";
 					 jdbcTemplate.update(sql,new Object[]{qty,fat,custno,date});
 				}
 			}
-			
+			 response="success";
 		} catch (Exception e) {
 			e.printStackTrace();
 			response="failure";
@@ -79,7 +87,7 @@ public class DailyService {
 		return response;
 	}
 	
-	public JSONObject prepareDateRow(String date){
+	public JSONObject prepareDateRow(String date,String dtsession){
 		
 		List<Map<String,Object>> result = getCustomerTransactionListByDate(date);
 	
@@ -89,11 +97,20 @@ public class DailyService {
 		for(Map<String,Object> map : result){
 			JSONArray jarr = new JSONArray();
 			jarr.add(map.get("CUSTOMER_NO"));
-			jarr.add(map.get("AM_QTY"));
-			jarr.add(map.get("AM_FAT"));
+			if(dtsession!=null && dtsession.equalsIgnoreCase("AM")){
+				jarr.add(map.get("AM_QTY")==null?"-":map.get("AM_QTY"));
+				jarr.add(map.get("AM_FAT")==null?"-":map.get("AM_FAT"));
+				jarr.add(map.get("AM_AMOUNT")==null?"-":map.get("AM_AMOUNT"));
+			}else if(dtsession!=null && dtsession.equalsIgnoreCase("PM")){
+				jarr.add(map.get("PM_QTY")==null?"-":map.get("PM_QTY"));
+				jarr.add(map.get("PM_FAT")==null?"-":map.get("PM_FAT"));
+				jarr.add(map.get("PM_AMOUNT")==null?"-":map.get("PM_AMOUNT"));
+			}
+			
 			jarray.add(jarr);
 		}
 		json.put("aaData", jarray);
+		json.put("iTotalRecords", result.size());
 		System.out.println(json);
 		return json;
 	}

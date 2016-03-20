@@ -4,8 +4,8 @@
 
 	<div id="menu">
 		<ul>
-			<li><a href="#">Daily Entry</a></li>
-			<li><a href="#">Billing</a></li>
+			<li><a href="<%=request.getContextPath()%>/resource/daily/page">Daily Entry</a></li>
+			<li><a href="<%=request.getContextPath()%>/resource/billing/page">Billing</a></li>
 			<li><a href="#">Fat Load</a></li>
 			<li><a href="#">Admin</a></li>
 		</ul>

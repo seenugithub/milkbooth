@@ -22,7 +22,7 @@
 		.dataTables_filter {
 		   display: none;
 		}
-		.entrySaveBtn{display:none}
+		.entrySaveBtn,.successInd,.errorInd{display:none}
 	</style>
 	<script type="text/javascript" language="javascript">
 	
@@ -33,8 +33,8 @@
 											"fnRowCallback": function( nRow, aData, iDisplayIndex ) {
 												
 												$(nRow).on('click', function() {
-													$(".entrySaveBtn").hide();
-													$(this).find(".entrySaveBtn").show();
+													$(".entrySaveBtn,.successInd,.errorInd").hide();
+													$(this).find(".entrySaveBtn").css('display', 'inline');
 												});
 												return nRow;
 												}
@@ -43,7 +43,7 @@
 		var poTable=$('#prevEntryTable').DataTable({
 													"bPaginate": false,
 													"bSort":false,
-													"ajax":"transdata.do",
+													"ajax":"transdata.do?date="+$("#prevdate").val()+"&dtsession="+$("#pdtsession").val(),
 													"responsive": true,
 											        "processing":true,
 											        "serverSide":true});
@@ -57,7 +57,7 @@
 		})
 		
 		$('#prevsearch').keyup(function(){
-			poTable.columns(0).search($(this).val()).draw() ;
+			poTable.search($(this).val()).draw() ;
 		})
 		
 		$(".entrySaveBtn").click(function(){
@@ -70,10 +70,50 @@
 			
 			var params="?date="+dt+"&qty="+qty+"&fat="+fat+"&custno="+custno+"&dtsession="+seldtsession;
 			$.ajax({url: "savetrans.do"+params,success: function(result){
-		        alert(result);
+		        if(result=="success"){
+		       		 $row.find(".successInd").css('display', 'inline');
+		        }else{
+		       		$row.find(".errorInd").css('display', 'inline');
+		        }
+		       		
 		    }});
 		});
 		
+		$("#prevshow").click(function(){
+			var prevdate = $("#prevdate").val();
+			var prevdtsession = $("#pdtsession").val();
+			var url = "transdata.do?date="+prevdate+"&dtsession="+prevdtsession;
+			$("#prevTbleLbl").html(prevdate+" : "+prevdtsession);
+			poTable.ajax.url(url).load();
+		});
+		
+		var hightlightFlag=false;
+		$("#todayHighlight").click(function(){
+			if(hightlightFlag==false){
+				hightlightFlag=true;
+				toTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+					var $row=$(toTable.row( rowIdx ).node());
+					var custno=$row.find(".custno").html();
+					var qty=$row.find(".qtytxt").val();
+					var fat=$row.find(".fattxt").val();
+					
+					if(qty==""){
+						$row.find(".qtytxt").css({"background-color":"#868A08"});
+						
+					}
+				})
+			}else if(hightlightFlag==true){
+				hightlightFlag=false;
+				toTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+					var $row=$(toTable.row( rowIdx ).node());
+					
+					$row.find(".qtytxt").css({"background-color":""});
+				
+				})
+			}
+				
+			
+		});
 	} );
 
 	</script>
@@ -117,7 +157,7 @@
 					<thead>
 						<tr>
 							<th rowspan="2" width="20%">Cust No</th>
-							<th colspan="3" width="80%">Today Entry (05/03/2016 : AM) </th>
+							<th colspan="3" width="80%">Today Entry (<%=todayDate%> : <%=dtsession==null?"AM":dtsession %>) </th>
 						</tr>
 						<tr>
 							<th>Quantity(Ltr)</th>
@@ -135,28 +175,14 @@
 							<td class="custno"><%=map.get("CUSTOMER_NO")%></td>
 							<td><input type="text" name="qty" class="qtytxt" value="<%=map.get(dtsession+"_QTY")==null?"":map.get(dtsession+"_QTY")%>" size="6"/></td>
 							<td><input type="text" name="fat" class="fattxt" value="<%=map.get(dtsession+"_FAT")==null?"":map.get(dtsession+"_FAT")%>" size="6"/></td>
-							<td><input type="button" class="entrySaveBtn jbutton" value="Save"/></td>
+							<td width="80px">
+								<input type="button" class="entrySaveBtn jbutton" value="Save"/>
+								<img class="successInd" src="<%=contextPath%>/jsp/images/check-mark-3-16.png" alt="Success"/>
+								<img class="errorInd" src="<%=contextPath%>/jsp/images/x-mark-3-16.png" alt="Error"/>
+							</td>
 						</tr>
 						<%} 
 						}%>
-						<tr>
-							<td  class="custno">2</td>
-							<td><input type="text" name="qty" class="qtytxt" value="9.5" size="6"/></td>
-							<td><input type="text" name="fat" class="fattxt" value="8.5" size="6"/></td>
-							<td><input type="button" class="entrySaveBtn jbutton" value="Save"/></td>
-						</tr>
-						<tr>
-							<td  class="custno">3</td>
-							<td><input type="text" name="qty" class="qtytxt" value="9.5" size="6"/></td>
-							<td><input type="text" name="fat" class="fattxt" value="8.5" size="6"/></td>
-							<td><input type="button" class="entrySaveBtn jbutton" value="Save"/></td>
-						</tr>
-						<tr>
-							<td  class="custno">40</td>
-							<td><input type="text" name="qty" class="qtytxt" value="9.5" size="6"/></td>
-							<td><input type="text" name="fat" class="fattxt" value="8.5" size="6"/></td>
-							<td><input type="button" class="entrySaveBtn jbutton" value="Save"/></td>
-						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -166,7 +192,7 @@
 		   					<td width="100">Prev Date</td>
 		   					<td> &nbsp;: &nbsp;<input type="text" name="prevdate" id="prevdate" class="jdate"/></td>
 		   					<td> 
-		   						<select name="dtsession" id="dtsession">
+		   						<select name="pdtsession" id="pdtsession">
 		   							<option value="AM">AM</option>
 		   							<option value="PM">PM</option>
 		   						</select>
@@ -183,35 +209,18 @@
 			 		<table id="prevEntryTable" class="display" cellspacing="0" width="400px">
 					<thead>
 						<tr>
-							<th rowspan="2" width="30%">Cust No</th>
-							<th colspan="2" width="70%">Entry for 04/03/2016 : PM </th>
+							
+							<th colspan="4" width="100%" style="text-align: center">Entry for <span id="prevTbleLbl"></span> </th>
 						</tr>
 						<tr>
-							<th>Quantity(Ltr)</th>
-							<th>Fat</th>
+							<th width="25%">Cust No</th>
+							<th width="25%">Qty(Ltr)</th>
+							<th width="20%">Fat</th>
+							<th width="30%">Total</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td  class="custno">1</td>
-							<td>9.5</td>
-							<td>8.5</td>
-						</tr>
-						<tr>
-							<td  class="custno">2</td>
-							<td>9.5</td>
-							<td>8.5</td>
-						</tr>
-						<tr>
-							<td  class="custno">3</td>
-							<td>9.5</td>
-							<td>8.5</td>
-						</tr>
-						<tr>
-							<td  class="custno">40</td>
-							<td>9.5</td>
-							<td>8.5</td>
-						</tr>
+						
 					</tbody>
 				</table>
 			 </div>

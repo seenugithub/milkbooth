@@ -63,12 +63,17 @@ public class MilkDailyController {
 	public void transdata(HttpServletRequest request, HttpServletResponse response ) {
 		System.out.println("Inside MilkDailyController - transdata()");
 		String pdate=request.getParameter("date") ;
-		//String dtsession=request.getParameter("dtsession") ;
+		String dtsession=request.getParameter("dtsession") ;
 		try {
-			
-			JSONObject json = DailyService.prepareDateRow(pdate);
-			
+			JSONObject json;
 			PrintWriter out =response.getWriter();
+			if(pdate==null || pdate.length()==0){
+				json = new JSONObject();
+				json.put("aaData","[]");
+				json.put("iTotalRecords", "0");
+			}else{
+			 json = DailyService.prepareDateRow(pdate,dtsession);
+			}
 			out.print(json);
 		} catch (Exception e) {
 			e.printStackTrace();
